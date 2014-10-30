@@ -9,5 +9,4 @@ func TestExtractTotalPages(t *testing.T) {
 	if intTotalPages := extractTotalPages(floatTotalPages); intTotalPages != expected {
 		t.Errorf("extractTotalPages(%v) = %v, expected %v", floatTotalPages, intTotalPages, expected)
 	}
-
 }
