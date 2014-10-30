@@ -13,8 +13,9 @@ var baseUri = "http://sb.uedbet.com/zh-cn/OddsService/"
 func main() {
 	unixUtcDateTimeNowMillisecond := getUnixUtcDateTimeNowMillisecond()
 	queryOddsParam := queryOddsParam{utcDateTime: unixUtcDateTimeNowMillisecond, sportId: 1, programmeId: 0, pageType: 1, uiBetType: "am", displayView: 2, pageNo: 0, oddsType: 2, sortBy: 1, isFirstLoad: true, MoreBetEvent: "null"}
-	
+
 	getOddsUri := getOddsUri(queryOddsParam)
+	fmt.Println(getOddsUri)
 
 	resp, err := http.Get(getOddsUri)
 	if err != nil {
@@ -28,9 +29,14 @@ func main() {
 			fmt.Println(err)
 		}
 
-		//~ fmt.Println(string(body))
 		uedBetData := uedBetDataJson.Parse(body)
 		fmt.Println(uedBetData.TotalPages)
+
+		for i := 1; i < uedBetData.TotalPages+1; i++ {
+			queryOddsParam.pageNo = i
+			//~ getOddsUri := getOddsUri(queryOddsParam)
+			//~ fmt.Println(getOddsUri)
+		}
 	}
 }
 
