@@ -11,7 +11,7 @@ import (
 var baseUri = "http://sb.uedbet.com/zh-cn/OddsService/"
 
 func main() {
-	unixUtcDateTimeNowMillisecond := time.Now().UnixNano() / int64(time.Millisecond)
+	unixUtcDateTimeNowMillisecond := getUnixUtcDateTimeNowMillisecond()
 	getOddsUri := getOddsUri(queryOddsParam{utcDateTime: unixUtcDateTimeNowMillisecond, sportId: 1, programmeId: 0, pageType: 1, uiBetType: "am", displayView: 2, pageNo: 0, oddsType: 2, sortBy: 1, isFirstLoad: true, MoreBetEvent: "null"})
 
 	resp, err := http.Get(getOddsUri)
@@ -52,4 +52,8 @@ func getOddsUri(queryOddsParam queryOddsParam) string {
 		queryOddsParam.sortBy,
 		queryOddsParam.isFirstLoad,
 		queryOddsParam.MoreBetEvent)
+}
+
+func getUnixUtcDateTimeNowMillisecond() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
