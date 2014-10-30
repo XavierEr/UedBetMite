@@ -17,7 +17,14 @@ func main() {
 	oddsUrl := getOddsUrl(queryOddsParam)
 
 	uedBetData := getUedBetData(oddsUrl)
-	fmt.Println(uedBetData.TotalPages)
+	//~ fmt.Println(uedBetData.TotalPages)
+	fmt.Println(len(uedBetData.LiveMatches.CategoryGroups))
+
+	for _, categoryGroup := range uedBetData.LiveMatches.CategoryGroups {
+		fmt.Println(categoryGroup.Category.Name)
+	}
+
+	fmt.Println(len(uedBetData.PreMatches.CategoryGroups))
 	//~ Save odds data to mongo db here
 
 	for i := 1; i < uedBetData.TotalPages; i++ {
