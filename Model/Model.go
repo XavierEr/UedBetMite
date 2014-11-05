@@ -1,7 +1,7 @@
 package model
 
 type UedBetData struct {
-	TotalPages  int   `json:"tp"`
+	TotalPages  int64 `json:"tp"`
 	LiveMatches Match `json:"i-ot"`
 	PreMatches  Match `json:"n-ot"`
 }
@@ -21,7 +21,7 @@ type Category struct {
 }
 
 type MatchInfo struct {
-	Key         int      `json:"k"`
+	Key         int64    `json:"k"`
 	Information []string `json:"i"`
 	OddsInfo    OddsInfo `json:"o"`
 }
@@ -35,4 +35,20 @@ type OddsInfo struct {
 	OverUnderFirstHalf     []string `json:"ou1st,omitempty"`
 	TotalGoal              []string `json:"tg,omitempty"`
 	TotalGoalFirstHalf     []string `json:"tg1st,omitempty"`
+}
+
+type Odds struct {
+	OddsType       string
+	LeagueKey      int64
+	LeagueName     string
+	MatchKey       int64
+	HomeTeamName   string
+	AwayTeamName   string
+	MatchStartDate string
+	MatchTime      string
+	HomeRedCard    int
+	AwayRedCard    int
+	HomeScore      int
+	AwayScore      int
+	MatchHalf      string
 }

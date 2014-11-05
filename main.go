@@ -6,7 +6,6 @@ import (
 	"github.com/XavierEr/UedBetMite/Model"
 	"github.com/XavierEr/UedBetMite/UedBetDataJson"
 	"gopkg.in/mgo.v2"
-	//~ "gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -30,7 +29,6 @@ func scrapeOdds() {
 
 	for _, categoryGroup := range uedBetData.PreMatches.CategoryGroups {
 		fmt.Println(categoryGroup.Category.Name)
-		writeCategoryToMongoDb(categoryGroup.Category)
 	}
 
 	//~ fmt.Println(len(uedBetData.PreMatches.CategoryGroups))
@@ -45,7 +43,7 @@ func scrapeOdds() {
 	//~ }
 }
 
-func writeCategoryToMongoDb(category model.Category) {
+func insertOddsToMongoDb(oddsList []model.Odds) {
 	session, err := mgo.Dial("mongodb://localadmin:12qwer34@ds047040.mongolab.com:47040/uedbetmitedb")
 	if err != nil {
 		fmt.Println(err)
@@ -53,10 +51,13 @@ func writeCategoryToMongoDb(category model.Category) {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 
-	c := session.DB("uedbetmitedb").C("category")
-	err = c.Insert(category)
-	if err != nil {
-		fmt.Println(err)
+	c := session.DB("uedbetmitedb").C("odds")
+
+	for _, odds := range oddsList {
+		err = c.Insert(odds)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
