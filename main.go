@@ -15,70 +15,24 @@ import (
 var baseUri = "http://sb.uedbet.com/zh-cn/OddsService/"
 
 func main() {
-	defer scrapeOdds()
+	oddsList, _ := scrapeOdds()
+	insertOddsToMongoDb(oddsList)
 }
 
-func scrapeOdds() {
+func scrapeOdds() ([]model.Odds, error) {
 	unixUtcDateTimeNowMillisecond := getUnixUtcDateTimeNowMillisecond()
 	queryOddsParam := queryOddsParam{utcDateTime: unixUtcDateTimeNowMillisecond, sportId: 1, programmeId: 0, pageType: 1, uiBetType: "am", displayView: 2, pageNo: 0, oddsType: 2, sortBy: 1, isFirstLoad: true, MoreBetEvent: "null"}
 	oddsUrl := getOddsUrl(queryOddsParam)
 
 	uedBetData, err := getUedBetData(oddsUrl)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	var oddsList []model.Odds
+	oddsList := extractOdds("PreMatch", uedBetData.PreMatches)
+	oddsList = append(oddsList, extractOdds("LiveMatch", uedBetData.LiveMatches)...)
 
-	for _, categoryGroup := range uedBetData.PreMatches.CategoryGroups {
-		for _, matchInfo := range categoryGroup.MatchInfos {
-			homeRedCard, _ := strconv.Atoi(matchInfo.Information[8])
-			awayRedCard, _ := strconv.Atoi(matchInfo.Information[9])
-			homeScore, _ := strconv.Atoi(matchInfo.Information[10])
-			awayScore, _ := strconv.Atoi(matchInfo.Information[11])
-			oddsList = append(oddsList,
-				model.Odds{
-					OddsType:       "PreMatch",
-					LeagueKey:      categoryGroup.Category.Key,
-					LeagueName:     categoryGroup.Category.Name,
-					MatchKey:       matchInfo.Key,
-					HomeTeamName:   matchInfo.Information[0],
-					AwayTeamName:   matchInfo.Information[1],
-					MatchStartDate: matchInfo.Information[4],
-					MatchTime:      matchInfo.Information[5],
-					HomeRedCard:    homeRedCard,
-					AwayRedCard:    awayRedCard,
-					HomeScore:      homeScore,
-					AwayScore:      awayScore,
-					MatchHalf:      matchInfo.Information[13]})
-		}
-	}
-
-	for _, categoryGroup := range uedBetData.LiveMatches.CategoryGroups {
-		for _, matchInfo := range categoryGroup.MatchInfos {
-			homeRedCard, _ := strconv.Atoi(matchInfo.Information[8])
-			awayRedCard, _ := strconv.Atoi(matchInfo.Information[9])
-			homeScore, _ := strconv.Atoi(matchInfo.Information[10])
-			awayScore, _ := strconv.Atoi(matchInfo.Information[11])
-			oddsList = append(oddsList,
-				model.Odds{
-					OddsType:       "LiveMatch",
-					LeagueKey:      categoryGroup.Category.Key,
-					LeagueName:     categoryGroup.Category.Name,
-					MatchKey:       matchInfo.Key,
-					HomeTeamName:   matchInfo.Information[0],
-					AwayTeamName:   matchInfo.Information[1],
-					MatchStartDate: matchInfo.Information[4],
-					MatchTime:      matchInfo.Information[5],
-					HomeRedCard:    homeRedCard,
-					AwayRedCard:    awayRedCard,
-					HomeScore:      homeScore,
-					AwayScore:      awayScore,
-					MatchHalf:      matchInfo.Information[13]})
-		}
-	}
-
-	insertOddsToMongoDb(oddsList)
+	return oddsList, nil
 
 	//~ fmt.Println(len(uedBetData.PreMatches.CategoryGroups))
 	//~ Save odds data to mongo db here
@@ -92,6 +46,36 @@ func scrapeOdds() {
 	//~ }
 }
 
+func extractOdds(matchType string, matches model.Match) []model.Odds {
+	var oddsList []model.Odds
+
+	for _, categoryGroup := range matches.CategoryGroups {
+		for _, matchInfo := range categoryGroup.MatchInfos {
+			homeRedCard, _ := strconv.Atoi(matchInfo.Information[8])
+			awayRedCard, _ := strconv.Atoi(matchInfo.Information[9])
+			homeScore, _ := strconv.Atoi(matchInfo.Information[10])
+			awayScore, _ := strconv.Atoi(matchInfo.Information[11])
+
+			oddsList = append(oddsList,
+				model.Odds{
+					OddsType:       matchType,
+					LeagueKey:      categoryGroup.Category.Key,
+					LeagueName:     categoryGroup.Category.Name,
+					MatchKey:       matchInfo.Key,
+					HomeTeamName:   matchInfo.Information[0],
+					AwayTeamName:   matchInfo.Information[1],
+					MatchStartDate: matchInfo.Information[4],
+					MatchTime:      matchInfo.Information[5],
+					HomeRedCard:    homeRedCard,
+					AwayRedCard:    awayRedCard,
+					HomeScore:      homeScore,
+					AwayScore:      awayScore,
+					MatchHalf:      matchInfo.Information[13]})
+		}
+	}
+	return oddsList
+}
+
 func insertOddsToMongoDb(oddsList []model.Odds) {
 	session, err := mgo.Dial("mongodb://localadmin:12qwer34@ds047040.mongolab.com:47040/uedbetmitedb")
 	if err != nil {
@@ -102,12 +86,15 @@ func insertOddsToMongoDb(oddsList []model.Odds) {
 
 	c := session.DB("uedbetmitedb").C("odds")
 
+	fmt.Println("1")
+	fmt.Println(len(oddsList))
 	for _, odds := range oddsList {
 		err = c.Insert(odds)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
+	fmt.Println("1")
 }
 
 func getUedBetData(oddsUrl string) (model.UedBetData, error) {
