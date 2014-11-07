@@ -8,6 +8,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"io/ioutil"
 	"net/http"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -86,15 +87,12 @@ func insertOddsToMongoDb(oddsList []model.Odds) {
 
 	c := session.DB("uedbetmitedb").C("odds")
 
-	fmt.Println("1")
-	fmt.Println(len(oddsList))
 	for _, odds := range oddsList {
 		err = c.Insert(odds)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
-	fmt.Println("1")
 }
 
 func getUedBetData(oddsUrl string) (model.UedBetData, error) {
