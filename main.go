@@ -8,7 +8,6 @@ import (
 	"gopkg.in/mgo.v2"
 	"io/ioutil"
 	"net/http"
-	"runtime"
 	"strconv"
 	"time"
 )
